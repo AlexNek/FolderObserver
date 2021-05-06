@@ -12,7 +12,7 @@ build:
   include_nuget_references: true
   verbosity: minimal
 artifacts:
-- path: '\NetFramework\FolderObserver\bin\Release\FolderObserver.exe'
+- path: 'C:\projects\folderobserver\FolderObserver\bin\Debug\FolderObserver.exe'
   name: FolderObserver.dll
 deploy:
 - provider: NuGet
