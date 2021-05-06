@@ -8,10 +8,12 @@ using FolderObserver.Model;
 
 using NUnit.Framework;
 
+
 namespace UnitTests
 {
-    // Uncomment for local test
-    //[TestFixture]
+#if LOCAL_TEST
+    [TestFixture]
+
     public class UnitTestMainWorkerFileSystem
     {
         private const string SourceFolderTest = @"C:\TempTestSrcAn";
@@ -167,8 +169,8 @@ namespace UnitTests
             }
         }
     }
+#endif
 }
-
 /*
  * Too much time for it
  * https://habr.com/ru/post/150859/

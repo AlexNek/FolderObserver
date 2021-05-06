@@ -6,8 +6,8 @@ using NUnit.Framework;
 
 namespace UnitTests
 {
-    // Uncomment for local test
-    //[TestFixture]
+#if LOCAL_TEST
+    [TestFixture]
     public class UnitTestCompressionFileSystem
     {
         [Test]
@@ -18,4 +18,5 @@ namespace UnitTests
             Assert.AreEqual(true,zipExist);
         }
     }
+#endif
 }

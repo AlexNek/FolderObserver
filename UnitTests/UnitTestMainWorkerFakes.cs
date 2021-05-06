@@ -35,6 +35,7 @@ namespace UnitTests
             //LogLog.InternalDebugging = true;
             //Note: uncomment for logging
             //log4net.Config.XmlConfigurator.Configure();
+            _items.Clear();
         }
 
         [Test]
@@ -111,8 +112,8 @@ namespace UnitTests
 
 
             FileItem fileItem = _items[0];
-            Assert.AreEqual(false, fileItem.IsError);
-            Assert.AreEqual(SourceFileName, fileItem.Name);
+            Assert.AreEqual(false, fileItem.IsError,"item error flag");
+            Assert.AreEqual(SourceFileName, fileItem.Name,"item file name");
             Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
             Assert.AreEqual(MaxCount, storedCount, $"It must be {MaxCount} calls for storing collection");
         }
@@ -205,7 +206,7 @@ namespace UnitTests
             //A.CallTo(() => worker.MoveFile(A<string>.Ignored, A<string>.Ignored)).MustHaveHappened();
             //A.CallTo(() => worker.DeleteFile(A<string>.Ignored)).MustHaveHappened();
 
-            Assert.AreEqual(1, _items.Count);
+            Assert.AreEqual(1, _items.Count,"Items count into work array");
             return stored;
         }
 
