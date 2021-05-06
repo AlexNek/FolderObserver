@@ -1,0 +1,130 @@
+﻿<Window x:Class="FolderObserver.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FolderObserver"
+        xmlns:ViewModels="clr-namespace:FolderObserver.ViewModel"
+        xmlns:Converters="clr-namespace:FolderObserver.Converters"
+        xmlns:AttachedCommandBehavior="clr-namespace:AttachedCommandBehavior;assembly=AttachedCommandBehavior"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance {x:Type ViewModels:MainWindowVm}}"
+        Title="Folder Observer"
+        Height="450" Width="800" Closed="Window_Closed" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Converters:DateToStringConverter x:Key="DateToStringConverter" />
+        <SolidColorBrush  x:Key="CouleurForegroundProgressBar" Color="Aqua"/>
+    </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Modifiers="" Command="{ Binding CommandStartObservation}"/>
+        <KeyBinding Key="F3" Modifiers="" Command="{ Binding CommandStopObservation}"/>
+        <!--We create a trick that this is working when grid has focus-->
+        <KeyBinding Key="A" Modifiers="Ctrl" Command="{ Binding CommandSelectAll}"/>
+
+        <KeyBinding Key="Delete" Modifiers="Ctrl" Command="{ Binding CommandDeleteSelected}"/>
+    </Window.InputBindings>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0"  HorizontalAlignment = "Stretch" VerticalAlignment = "Top" >
+            <MenuItem Header = "File" >
+                <MenuItem Header="Source Folder..." Command="{Binding CommandSourceFolder}" HorizontalAlignment = "Left"  />
+                <MenuItem Header="Target Folder..." Command="{Binding CommandStopObservation}" HorizontalAlignment = "Left"  />
+                <Separator HorizontalAlignment = "Left" Width = "140"/>
+                <MenuItem Header="Export as CSV..." Command="{Binding CommandExport}" HorizontalAlignment = "Left"  />
+                <Separator HorizontalAlignment = "Left" Width = "140"/>
+
+                <MenuItem Header = "Exit" Click="ButtonExit_Click" HorizontalAlignment = "Left" Width = "140"  />
+
+            </MenuItem>
+            <MenuItem Header = "Edit" >
+                <MenuItem Header="Select All" Command="{ Binding CommandSelectAll}" InputGestureText ="Ctrl/A" HorizontalAlignment = "Left"  />
+                <MenuItem Header="Delete selected" Command="{ Binding CommandDeleteSelected}" InputGestureText ="Ctrl/Del" HorizontalAlignment = "Left"  />
+            </MenuItem>
+            <MenuItem Header = "Observation" >
+                <MenuItem Header="Start" Command="{ Binding CommandStartObservation}" InputGestureText ="F5" HorizontalAlignment = "Left"  />
+                <MenuItem Header="Stop" Command="{ Binding CommandStopObservation}" InputGestureText ="F3" HorizontalAlignment = "Left"  />
+            </MenuItem>
+            <MenuItem Header = "Settings" >
+                <MenuItem Header="Settings..." Command="{ Binding CommandEditSettings}" InputGestureText ="" HorizontalAlignment = "Left"  />
+            </MenuItem>
+        </Menu>
+        <DockPanel Grid.Row="1" >
+
+            <Button DockPanel.Dock="Left" Content="Exit" Width="95" HorizontalAlignment="Left" Margin="2,5,5,5" Click="ButtonExit_Click"/>
+            <Button DockPanel.Dock="Left" Content="Start observation" Command="{ Binding CommandStartObservation}" Width="100" HorizontalAlignment="Left" Margin="5"/>
+            <Button DockPanel.Dock="Left" Content="Stop observation" Command="{ Binding CommandStopObservation}"  Width="100" HorizontalAlignment="Left" Margin="5"/>
+            <ProgressBar Orientation="Horizontal" Minimum="0" Maximum="100" 
+                         IsIndeterminate="{Binding IsObservationRunning}" 
+                         Value ="{Binding ProgressValue}" Width="Auto" Margin="5">
+                
+            </ProgressBar>
+        </DockPanel>
+        <StackPanel Grid.Row="2">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel  Grid.Column="0">
+                        <Button  Content="Source Folder..." Command="{Binding CommandSourceFolder}" Margin="2"/>
+                        <Button  Content="Target Folder..." Command="{Binding CommandTargetFolder}" Margin="2"/>
+                    </StackPanel>
+                    <StackPanel  Grid.Column="1">
+                        <Label Content="{Binding SourceFolder}"/>
+                        <Label Content="{Binding TargetFolder}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+            <Label Content="Moved files"/>
+            <DataGrid x:Name="gridControlMembers"
+                      ItemsSource="{Binding Items}"
+                      AutoGenerateColumns="False" 
+                      AlternatingRowBackground="LightBlue" 
+                      AlternationCount="2"
+                      CanUserAddRows="False" 
+                      CanUserDeleteRows="False">
+                <AttachedCommandBehavior:CommandBehaviorCollection.Behaviors>
+                    <AttachedCommandBehavior:BehaviorBinding 
+                        Event="MouseDoubleClick" 
+                        Command="{Binding CommandGridRowDblClick}"
+                        CommandParameter="{Binding ElementName=gridControlMembers, Path=SelectedItem}"
+                    />
+                    <AttachedCommandBehavior:BehaviorBinding 
+                        Event="SelectionChanged" 
+                        Command="{Binding CommandGridSelectionChanged}"
+                        CommandParameter="{Binding ElementName=gridControlMembers, Path=SelectedItems}"
+                    />
+
+                </AttachedCommandBehavior:CommandBehaviorCollection.Behaviors>
+                <DataGrid.Columns>
+                    <!--<DataGridCheckBoxColumn Header="Sel."  Binding="{Binding Selected}"/>-->
+                    <!--for immediate check. Runtime DataContext is FileItem-->
+                    <DataGridTemplateColumn Header="Sel.">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn IsReadOnly="True" Header="Copy time stamp" Binding="{Binding CopyDate, Converter={StaticResource DateToStringConverter}}" />
+                    <DataGridTextColumn IsReadOnly="True" Header="File time stamp" Binding="{Binding TimeStamp, Converter={StaticResource DateToStringConverter}}" />
+                    <DataGridCheckBoxColumn IsReadOnly="True" Header="Error"  Binding="{Binding IsError}"/>
+                    <DataGridTextColumn IsReadOnly="True" Header="File Name" Binding="{Binding Name}" Width="*"/>
+
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Set check flag on selections" Command="{Binding CommandSetFlag}" />
+                        <MenuItem Header="Reset check flag on selections" Command="{Binding CommandResetFlag}"/>
+                        <MenuItem Header="Remove checked items" Command="{Binding CommandDeleteSelected}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </StackPanel>
+    </Grid>
+</Window>
