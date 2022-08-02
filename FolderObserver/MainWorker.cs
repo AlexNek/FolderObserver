@@ -14,6 +14,8 @@ namespace FolderObserver
 {
     internal class MainWorker
     {
+        private const int ThreadSleepTimeMs = 50;
+
         public event EventHandler<bool> StateChanged;
 
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -99,7 +101,7 @@ namespace FolderObserver
             {
                 IsRunning = true;
                 OnStateChanged(IsRunning);
-                _log.Debug($"MainWorker will be started for {_filesQueue.Count} files. Cansellation pending {CancellationPending}");
+                _log.Debug($"MainWorker will be started for {_filesQueue.Count} files. Cancellation pending {CancellationPending}");
             }
 
             Task.Run(
@@ -109,8 +111,6 @@ namespace FolderObserver
                         Thread.CurrentThread.Name = "Main worker";
                         while (!CancellationPending)
                         {
-                            
-
                             if (_filesQueue.TryDequeue(out FileSystemEventArgs moveItem))
                             {
                                 _log.Debug($" Do work for {moveItem.Name}");
@@ -122,7 +122,10 @@ namespace FolderObserver
 
                                 try
                                 {
-                                    addItemToListAction?.Invoke(fileItem);
+                                    if (addItemToListAction != null)
+                                    {
+                                        addItemToListAction(fileItem);
+                                    }
 
                                     string sourceFilePath = moveItem.FullPath;
                                     string archiveName = FileCompressor.GetArchiveFileName(sourceFilePath);
@@ -136,9 +139,10 @@ namespace FolderObserver
 
                                     DeleteFile(sourceFilePath);
 
-                                    storeItems?.Invoke();
-
-                                    //_dataSerializer.Store(_items);
+                                    if (storeItems != null)
+                                    {
+                                        storeItems();
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -162,7 +166,7 @@ namespace FolderObserver
                                 }
                             }
 
-                            Thread.Sleep(50);
+                            Thread.Sleep(ThreadSleepTimeMs);
                         }
 
                         lock (_lockObj)
