@@ -16,20 +16,18 @@ Unit testing frameworks for C#:
 
 There is two different approach to write unit tests: unit test first (TDD - Test Driven Development) or
 code first.
-As a lot of project don't have test at all then we try to use second approach.
+As a lot of projects don't have test at all then we try to use second approach.
 It could be really hard to add a unit test to existing code if nobody thinking about application testability.
 
 
-If you can not extract from code some important parts for testing
-then your application is not testable and written in bad manner.
+If you cannot extract some important parts from the code for testing
+then your application is not testable and written in a bad way.
 
 Here is the sample of non testable code:
 > Sample 1
 ````csharp
 <Window x:Class="SampleApplication1.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        ...
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Button Content="Click me" Click="Button_Click"/>
@@ -44,7 +42,7 @@ private void Button_Click(object sender, RoutedEventArgs e)
 }
 ````
 
-[ sample from](https://www.wpf-tutorial.com/xaml/events-in-xaml/)
+[ sample 1 from wpf-tutorial](https://www.wpf-tutorial.com/xaml/events-in-xaml/)
 
 In some cases you can extract the code but can not test it in unknown environment as code used calls to file or database functions.
 In this case you can write unit tests for your own development environment only or replace external functions with special test functions.
@@ -65,10 +63,7 @@ At the first step we must split logic from user interface.
 > Sample 2
 ````csharp
 <Window x:Class="SampleApplication2.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SampleApplication2"
+        ...
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <local:MainWindowViewModel/>
@@ -97,8 +92,8 @@ public class MainWindowViewModel
 ````
 
 Sample 2 look better as we can use *MainWindowViewModel* in our tests but there is no sense to see *MessageBox.Show* function in our test. So we need to refactor our sample more. 
-There is at least two ways how to "remove" *MessageBox.Show* from the tests. I can not tell you which way will be better for your project as decision depends from different project specific factors.
-
+There is at least two ways how to "remove" *MessageBox.Show* from the tests.
+I can not tell you which way is the best for your project, because the decision depends on different specific project factors.
 The first way is very easy and could be recommend if you have a lot of different fixed operations.
 
 > sample 3.1
@@ -146,7 +141,8 @@ Now we will be able to create a test function:
     }
 ````
 
-> I used NUnit and FakeItEasy 
+> I used NUnit and FakeItEasy for Version I
+> I added xUnit project with FluentAssertion for Update I
 
 The second way is complicated but more preferable if you have group of operations for different scenario. 
 We need more that one step for refactoring.
@@ -221,3 +217,27 @@ public void HandlerCallTest()
 
 By development process sometimes we want to test external resources like file system or database.
 Pay attention that you can do it locally but please don't checkin it as public test.
+
+# nUnit vs xUnit
+
+The main difference is that NUnit creates a new instance of the test class and then runs all of the test methods from the same instance. 
+Whereas xUnit.net creates a new instance of the test class for each of the test methods. 
+if you use xunit.net, you could be sure that your test methods are completely isolated.
+
+For further reading: (NUnit vs. XUnit vs. MSTest: Comparing Unit Testing Frameworks In C#)[https://www.lambdatest.com/blog/nunit-vs-xunit-vs-mstest/]
+
+# FluentAssertions
+
+Just additional helpful library.
+A very extensive set of extension methods that allow you to more naturally specify the expected outcome of a unit tests.
+
+(Fluent Assertions Home)[https://fluentassertions.com/]
+
+Compare NUnit Assertion
+````csharp
+Assert.AreEqual(true,zipExist)
+````
+with fluent assertion. I think you can immediatly understood what we want to test.
+````csharp
+zipExist.Should().BeTrue();
+````csharp

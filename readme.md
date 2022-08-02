@@ -74,6 +74,8 @@ For another requierements I have more detailed description:
 [R14 How to use Unit test](Docs/UnitTests.md) - project local tests are commented on.    
 [R15 How to show dialog before main application?](Docs/WPF2Windows.md)   
 [R16 How To create System tray application?](Docs/SystemTrayApp.md) 
+# Updates
+Update I - added xUnit project with fluent assertions. [See](Docs/UnitTests.md) 
 
 # Further reading
 

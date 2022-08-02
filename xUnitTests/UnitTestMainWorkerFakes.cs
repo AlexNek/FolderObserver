@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 
 using FakeItEasy;
 
+using FluentAssertions;
+
 using FolderObserver;
 using FolderObserver.Model;
 
-using log4net.Util;
-
-using NUnit.Framework;
+using Xunit;
 
 namespace UnitTests
 {
-    [TestFixture]
+
     public class UnitTestMainWorkerFakes
     {
         private const string SourceFolderTest = @"C:\TempTestSrcAn";
@@ -27,19 +27,21 @@ namespace UnitTests
 
         private readonly DataItems _items = new DataItems();
 
-        [SetUp]
-        public  void RunBeforeAnyTests()
+        public UnitTestMainWorkerFakes()
+        {
+            RunBeforeAnyTests();
+        }
+
+        private void RunBeforeAnyTests()
         {
             _sourceFullPath = Path.Combine(SourceFolderTest, SourceFileName);
-            _items.Clear();
             //NOTE: uncomment if any troubles with logging
             //LogLog.InternalDebugging = true;
             //Note: uncomment for logging
             //log4net.Config.XmlConfigurator.Configure();
-            _items.Clear();
         }
 
-        [Test]
+        [Fact]
         public void TestMethodSimpleCall()
         {
             MainWorkerUnderTest worker = A.Fake<MainWorkerUnderTest>();
@@ -52,13 +54,18 @@ namespace UnitTests
 
 
             FileItem fileItem = _items[0];
-            Assert.AreEqual(false, fileItem.IsError);
-            Assert.AreEqual(SourceFileName, fileItem.Name);
-            Assert.AreEqual(creationDate, fileItem.TimeStamp,"Wrong file time stamp");
-            Assert.AreEqual(true, stored, "It must be call for storing collection");
+            fileItem.IsError.Should().BeFalse();
+            fileItem.Name.Should().Be(SourceFileName);
+            fileItem.TimeStamp.Should().Be(creationDate, "Wrong file time stamp");
+            stored.Should().BeTrue("It must be call for storing collection");
+
+            //Assert.AreEqual(false, fileItem.IsError);
+            //Assert.AreEqual(SourceFileName, fileItem.Name);
+            //Assert.AreEqual(creationDate, fileItem.TimeStamp,"Wrong file time stamp");
+            //Assert.AreEqual(true, stored, "It must be call for storing collection");
         }
 
-        [Test]
+        [Fact]
         public void TestMethodALotOfCall()
         {
             MainWorkerUnderTest worker = A.Fake<MainWorkerUnderTest>();
@@ -93,7 +100,8 @@ namespace UnitTests
                 
             }
 
-            Assert.AreEqual(MaxCount, worker.WorkingQueueCount, "Wrong working queue size");
+            worker.WorkingQueueCount.Should().Be(MaxCount, "Wrong working queue size");
+            //Assert.AreEqual(MaxCount, worker.WorkingQueueCount, "Wrong working queue size");
 
             worker.RunHandlingOfWorkingItems(
                 (item) => { _items.Add(item); },
@@ -101,7 +109,8 @@ namespace UnitTests
                 (ex, item) => { item.IsError = true; }
                 );
 
-            Assert.AreEqual(true, worker.IsRunning, "worker must be in running state");
+            worker.IsRunning.Should().BeTrue("worker must be in running state");
+            //Assert.AreEqual(true, worker.IsRunning, "worker must be in running state");
 
             //worker.CancellationPending = true;
             WaitExecutionFinished(worker);
@@ -113,13 +122,19 @@ namespace UnitTests
 
 
             FileItem fileItem = _items[0];
-            Assert.AreEqual(false, fileItem.IsError,"item error flag");
-            Assert.AreEqual(SourceFileName, fileItem.Name,"item file name");
-            Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
-            Assert.AreEqual(MaxCount, storedCount, $"It must be {MaxCount} calls for storing collection");
+
+            fileItem.IsError.Should().BeFalse();
+            fileItem.Name.Should().Be(SourceFileName);
+            fileItem.TimeStamp.Should().Be(creationDate, "Wrong file time stamp");
+            storedCount.Should().Be(MaxCount,$"It must be {MaxCount} calls for storing collection");
+
+            //Assert.AreEqual(false, fileItem.IsError);
+            //Assert.AreEqual(SourceFileName, fileItem.Name);
+            //Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
+            //Assert.AreEqual(MaxCount, storedCount, $"It must be {MaxCount} calls for storing collection");
         }
 
-        [Test]
+        [Fact]
         public void TestCompressException()
         {
             MainWorkerUnderTest worker = A.Fake<MainWorkerUnderTest>();
@@ -134,13 +149,13 @@ namespace UnitTests
             A.CallTo(() => worker.DeleteFile(A<string>.Ignored)).MustNotHaveHappened();
 
             FileItem fileItem = _items[0];
-            Assert.AreEqual(true, fileItem.IsError, "Item error");
-            Assert.AreEqual(SourceFileName, fileItem.Name);
-            Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
-            Assert.AreEqual(true, stored, "It must be call for storing collection");
+            fileItem.IsError.Should().BeTrue();
+            fileItem.Name.Should().Be(SourceFileName);
+            fileItem.TimeStamp.Should().Be(creationDate, "Wrong file time stamp");
+            stored.Should().BeTrue("It must be call for storing collection");
         }
 
-        [Test]
+        [Fact]
         public void TestMoveFileException()
         {
             
@@ -156,13 +171,19 @@ namespace UnitTests
             A.CallTo(() => worker.DeleteFile(A<string>.Ignored)).MustNotHaveHappened();
 
             FileItem fileItem = _items[0];
-            Assert.AreEqual(true, fileItem.IsError, "Item error");
-            Assert.AreEqual(SourceFileName, fileItem.Name);
-            Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
-            Assert.AreEqual(true, stored, "It must be call for storing collection");
+
+            fileItem.IsError.Should().BeTrue("Item error");
+            fileItem.Name.Should().Be(SourceFileName);
+            fileItem.TimeStamp.Should().Be(creationDate, "Wrong file time stamp");
+            stored.Should().BeTrue("It must be call for storing collection");
+
+            //Assert.AreEqual(true, fileItem.IsError, "Item error");
+            //Assert.AreEqual(SourceFileName, fileItem.Name);
+            //Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
+            //Assert.AreEqual(true, stored, "It must be call for storing collection");
         }
 
-        [Test]
+        [Fact]
         public void TestDeleteFileException()
         {
 
@@ -178,27 +199,33 @@ namespace UnitTests
             A.CallTo(() => worker.DeleteFile(A<string>.That.IsEqualTo(_sourceFullPath))).MustHaveHappenedOnceExactly();
 
             FileItem fileItem = _items[0];
-            Assert.AreEqual(true, fileItem.IsError, "Item error");
-            Assert.AreEqual(SourceFileName, fileItem.Name);
-            Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
-            Assert.AreEqual(true, stored, "It must be call for storing collection");
+
+            fileItem.IsError.Should().BeTrue("Item error");
+            fileItem.Name.Should().Be(SourceFileName);
+            fileItem.TimeStamp.Should().Be(creationDate, "Wrong file time stamp");
+            stored.Should().BeTrue("It must be call for storing collection");
+
+            //Assert.AreEqual(true, fileItem.IsError, "Item error");
+            //Assert.AreEqual(SourceFileName, fileItem.Name);
+            //Assert.AreEqual(creationDate, fileItem.TimeStamp, "Wrong file time stamp");
+            //Assert.AreEqual(true, stored, "It must be call for storing collection");
         }
 
         private bool BaseTest(MainWorkerUnderTest worker)
         {
             FileSystemEventArgs args = new FileSystemEventArgs(WatcherChangeTypes.All, SourceFolderTest, SourceFileName);
             bool stored = false;
-           
+
             worker.TargetFolder = TargetFolderTest;
-            //FileItem item = new FileItem() { Name = SourceFileName };
             worker.AddWorkItem(args);
             worker.RunHandlingOfWorkingItems(
                 (item) => { _items.Add(item); },
                 () => { stored = true; },
                 (ex, item) => { item.IsError = true; });
+            worker.IsRunning.Should().BeTrue();
 
-            Assert.AreEqual(true, worker.IsRunning);
-            //bool stored = stored1;
+            //Assert.AreEqual(true, worker.IsRunning);
+
             //worker.CancellationPending = true;
             WaitExecutionFinished(worker);
 
@@ -206,8 +233,9 @@ namespace UnitTests
             A.CallTo(() => worker.CompressFile(A<string>.That.IsEqualTo(_sourceFullPath))).MustHaveHappenedOnceExactly();
             //A.CallTo(() => worker.MoveFile(A<string>.Ignored, A<string>.Ignored)).MustHaveHappened();
             //A.CallTo(() => worker.DeleteFile(A<string>.Ignored)).MustHaveHappened();
+            _items.Count.Should().Be(1);
 
-            Assert.AreEqual(1, _items.Count,"Items count into work array");
+            //Assert.AreEqual(1, _items.Count);
             return stored;
         }
 
@@ -221,6 +249,11 @@ namespace UnitTests
 
         internal class MainWorkerUnderTest : MainWorker
         {
+            public MainWorkerUnderTest()
+            {
+                
+            }
+
             public override DateTime GetFileCreationTime(string fileFullPath)
             {
                 return base.GetFileCreationTime(fileFullPath);
