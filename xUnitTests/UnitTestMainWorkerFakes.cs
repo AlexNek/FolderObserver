@@ -149,7 +149,7 @@ namespace UnitTests
             A.CallTo(() => worker.DeleteFile(A<string>.Ignored)).MustNotHaveHappened();
 
             FileItem fileItem = _items[0];
-            fileItem.IsError.Should().BeFalse();
+            fileItem.IsError.Should().BeTrue();
             fileItem.Name.Should().Be(SourceFileName);
             fileItem.TimeStamp.Should().Be(creationDate, "Wrong file time stamp");
             stored.Should().BeTrue("It must be call for storing collection");
