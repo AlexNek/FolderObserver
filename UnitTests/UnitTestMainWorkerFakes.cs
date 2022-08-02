@@ -31,6 +31,7 @@ namespace UnitTests
         public  void RunBeforeAnyTests()
         {
             _sourceFullPath = Path.Combine(SourceFolderTest, SourceFileName);
+            _items.Clear();
             //NOTE: uncomment if any troubles with logging
             //LogLog.InternalDebugging = true;
             //Note: uncomment for logging
@@ -186,7 +187,7 @@ namespace UnitTests
         {
             FileSystemEventArgs args = new FileSystemEventArgs(WatcherChangeTypes.All, SourceFolderTest, SourceFileName);
             bool stored = false;
-            _items.Clear();
+           
             worker.TargetFolder = TargetFolderTest;
             //FileItem item = new FileItem() { Name = SourceFileName };
             worker.AddWorkItem(args);
